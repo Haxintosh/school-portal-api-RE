@@ -1,0 +1,13 @@
+.idea/
+
+*.env
+.env
+.ENV
+*.ENV
+
+*.pyc
+
+outputs/
+
+*.log
+*.html
