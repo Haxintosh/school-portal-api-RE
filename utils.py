@@ -6,8 +6,6 @@ import uuid
 
 LOG_ROOT = 'outputs/'
 def csrf_parse(html_doc):
-    with open(LOG_ROOT+"csrf_parse.html", "w") as res:
-        res.write(html_doc)
     match = re.search(r"\'csrf_token\':\s*\"(\w+)\"", html_doc)
     if match:
         csrf_token = match.group(1)
@@ -18,8 +16,6 @@ def csrf_parse(html_doc):
 
 
 def user_parse(html_doc):
-    with open("user_parse.html", "w") as res:
-        res.write(html_doc)
     match = re.search(r"const typesUsager = \[(.*)\];", html_doc)
     if match:
         user_list = match.group(1)

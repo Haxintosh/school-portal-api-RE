@@ -11,3 +11,5 @@ outputs/
 
 *.log
 *.html
+
+.venv/
