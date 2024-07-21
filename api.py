@@ -148,13 +148,15 @@ def login(username, password):
     log.write("SESSION TIMER HEADER: " + str(timer_session.headers) + '\n')
     log.write("SESSION TIMER TXT: " + str(timer_session.text) + '\n\n')
 
+    return session
 
-    # <----- AGENDA ----->
-    # PERMISSIONS = OP 100
-    # CONTENTS = OP 110
-    # TODO REV ENG AGENDA JS
+# <----- AGENDA ----->
+# PERMISSIONS = OPCODE 100
+# CONTENTS = OPCODE 110
+# TODO REV ENG AGENDA JS
+def getAgenda(session, start, end):
     bcolors.Logging.info(thread="session/agenda", error="Getting agenda")
-    unixStart =	"1714363200000"
+    unixStart = "1714363200000"
     unixEnd = "1715399999999"
     params = {
         "OP": "110",
@@ -184,58 +186,6 @@ def login(username, password):
         'Cache-Control': 'no-cache'
     }
 
-    chrgpage={
-        "ChargeLaPage": "F00",
-        "_": int(time.time())
-    }
-
-    # chrgpageans=session.get(url=f"{agenda_url}?{urlencode(chrgpage)}", headers=agenda_header)
-
     agendadata = session.get(url=f"{agenda_url}?{urlencode(params)}", headers=agenda_header)
 
-    print(agendadata.text)
-
-    return agendadata.text
-
-def getAgenda(session, start, end):
-    # <----- AGENDA -----> !!! BROKEN !!!
-    # PERMISSIONS = OPCODE 100
-    # CONTENTS = OPCODE 110
-    # TODO REV ENG AGENDA JS
-    bcolors.Logging.info(thread="session/agenda", error="Getting agenda")
-    unixStart =	"1714363200000"
-    unixEnd = "1715399999999"
-    params = {
-        "OP": "110",
-        "noEcole": "-1",
-        "mode": "2",
-        "dateDebut": unixStart,
-        "dateFin": unixEnd,
-        "_": int(time.time())
-    }
-
-    agenda_header = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=ISO-8859-1',
-        'X-PluriToken': csrf_token,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Origin': 'https://portail.cje.qc.ca',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Referer': 'https://portail.cje.qc.ca/pluriportail/pfr/Main.srf?MainAccueil=1',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-origin',
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache',
-        'Set-GPC': '1'
-    }
-
-
-    agendadata = session.get(url=f"{agenda_url}?{urlencode(params)}", headers=agenda_header)
-
-    print(agendadata.text)
     return agendadata.text

@@ -8,4 +8,6 @@ load_dotenv('.env')
 USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 
-parseAgenda(login(USERNAME, PASSWORD))
+main_session = login(USERNAME, PASSWORD)
+
+parseAgenda(getAgenda(main_session, start=0, end=0))
