@@ -10,4 +10,6 @@ PASSWORD = os.getenv('PASSWORD')
 
 main_session = login(USERNAME, PASSWORD)
 
-parseAgenda(getAgenda(main_session, start=0, end=0))
+parseGrades(getGrades(main_session, 1))
+
+# parseAgenda(getAgenda(main_session, start=0, end=0))

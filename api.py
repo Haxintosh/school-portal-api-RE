@@ -1,3 +1,5 @@
+import math
+
 from utils import *
 from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
 import time
@@ -10,6 +12,7 @@ main_srf_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Main.srf?ProfilType=1
 rest_api_key_url = 'https://portail.cje.qc.ca/pluriportail/ServeurJSON.srf?M1-OP14~'
 logout_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Logout.srf'
 agenda_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Agenda.srf'
+grade_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Travaux.srf'
 
 LOG_ROOT = 'outputs/'
 
@@ -52,6 +55,25 @@ main_srf_header = {
     "Cache-Control": "no-cache"
 }
 
+other_header= {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'X-PluriToken': '',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Host': 'portail.cje.qc.ca',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Referer': 'https://portail.cje.qc.ca/pluriportail/pfr/Main.srf?P=MainAccueil',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache'
+    }
+
 def login(username, password):
     login_payload = {
         'NomLogin': username,
@@ -84,6 +106,8 @@ def login(username, password):
     log.write("SESSION CSRF COOKIES: " + str(main_srf.cookies) + '\n')
     log.write("SESSION CSRF HEADER: " + str(main_srf.headers) + '\n')
     log.write("SESSION CSRF TXT: " + str(main_srf.text) + '\n\n')
+
+    other_header['X-PluriToken'] = csrf_token
 
     rest_api_key_header = {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
@@ -189,3 +213,14 @@ def getAgenda(session, start, end):
     agendadata = session.get(url=f"{agenda_url}?{urlencode(params)}", headers=agenda_header)
 
     return agendadata.text
+
+def getGrades(session, semester):
+    if semester not in [1, 2, 3, 'all']:
+        print('Invalid semester!')
+        return
+    main_grade_url = grade_url+f'?NoEtape={semester}&ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}'
+    grade_data = session.get(url=main_grade_url, headers=other_header)
+    f = open('outputs/disgusting_grade.html', 'w')
+    f.write(grade_data.text)
+    f.close()
+    return grade_data.text

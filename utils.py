@@ -4,6 +4,7 @@ import re
 from time import strftime, localtime
 import json
 import uuid
+from bs4 import BeautifulSoup
 
 import api
 
@@ -137,9 +138,24 @@ def parseAgenda(agenda):
         for j in formattedDayArray:
             if round(i.day) == round(j.date):
                 j.courses.append(i)
-    print("VALIDATED")
+
     for i in formattedDayArray:
         print(i.__str__(), '\n')
+
+
+def parseGrades(html):
+    soup = BeautifulSoup(html, features="html.parser")
+    matching_tags = soup.find_all('option')
+    coursesList = []
+    coursesIDs = []
+    for i in matching_tags:
+        if i['value'].startswith('Travaux.srf?Detail=O'):
+            print(i.text.strip())
+            coursesList.append(i.text.strip())
+            matches = re.findall(r'\[(.*)-', string=i.text.strip())
+            if matches:
+                coursesIDs.append(matches[0])
+
 
 def get_day_of_epoch(epoch):
     dateObject = datetime.datetime.fromtimestamp(epoch/1000)
