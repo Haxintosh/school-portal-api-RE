@@ -199,10 +199,10 @@ def get_day_of_epoch(epoch):
 def epoch_to_str(epoch):
     return strftime('%Y-%m-%d %H:%M:%S', localtime(epoch))
 
-def prettifyHTML(html):
+def prettifyHTML(html, name):
     soup = BeautifulSoup(html)
     print(soup.prettify())
-    f = open('outputs/clean_grade.html', 'w')
+    f = open(f'outputs/{name}.html', 'w')
     f.write(soup.prettify())
     f.close()
 
@@ -237,3 +237,39 @@ def formatExams(exams):
         returnArray.append(currentExam)
     print(returnArray)
     return returnArray
+
+def parseMessages(html):
+    positionMap = {
+        0:'sender',
+        1:'title',
+        2:'time',
+        3:'receiver',
+        4:'link'
+    }
+
+    msg_id_regex = re.compile(r"CourrielDetail.srf\?IDCourriel=([^')]*)")
+
+    soup = BeautifulSoup(html)
+    message_elements = soup.find_all('tr', class_='PointeurMain')
+    unformatted_messages = []
+    for i in message_elements:
+        inner_html = i.text.strip()
+        href = i('a')
+        if href:
+            href = re.search(msg_id_regex, href[0]['href'])[0]
+            inner_html += f'\n{href}'
+        unformatted_messages.append(inner_html)
+    formatted_messages = []
+    for j in unformatted_messages:
+        single_message = j.split('\n')
+        current_message = {}
+        for index, k in enumerate(single_message):
+            current_message[positionMap[index]] = k
+        formatted_messages.append(current_message)
+    print(formatted_messages)
+    return formatted_messages
+
+
+
+
+

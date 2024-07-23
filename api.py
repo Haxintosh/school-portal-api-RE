@@ -13,6 +13,7 @@ rest_api_key_url = 'https://portail.cje.qc.ca/pluriportail/ServeurJSON.srf?M1-OP
 logout_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Logout.srf'
 agenda_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Agenda.srf'
 grade_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Travaux.srf'
+messages_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Courriel.srf'
 
 LOG_ROOT = 'outputs/'
 
@@ -223,4 +224,9 @@ def getGrades(session, semester):
     f = open('outputs/disgusting_grade.html', 'w')
     f.write(grade_data.text)
     f.close()
-    return grade_data.text
+    return parseGrades(grade_data.text)
+
+def getMessages(session):
+    main_msg_url = messages_url+f'?ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}'
+    msg_data = session.get(url=main_msg_url, headers=other_header)
+    return msg_data.text
