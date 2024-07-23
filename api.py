@@ -14,6 +14,7 @@ logout_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Logout.srf'
 agenda_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Agenda.srf'
 grade_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Travaux.srf'
 messages_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Courriel.srf'
+single_message_url = 'https://portail.cje.qc.ca/pluriportail/pfr/CourrielDetail.srf'
 
 LOG_ROOT = 'outputs/'
 
@@ -246,3 +247,10 @@ def getMessages(session):
 
     print(f'Fetch took {time.time()-start_time}')
     return parseMessages(msg_data.text)
+
+def getMessageById(session, id):
+    single_msg_url = single_message_url+f"?IDCourriel={id}&ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}"
+    single_msg_data = session.get(url=single_msg_url, headers=other_header)
+    parseSingleMessage(single_msg_data.text)
+    return single_msg_data.text
+

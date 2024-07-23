@@ -203,7 +203,6 @@ def epoch_to_str(epoch):
 
 def prettifyHTML(html, name):
     soup = BeautifulSoup(html)
-    print(soup.prettify())
     f = open(f'outputs/{name}.html', 'w')
     f.write(soup.prettify())
     f.close()
@@ -305,7 +304,35 @@ def parseMessages(html):
     print(f'Eexecution took {time.time()-start_time}')
     return formatted_messages
 
+def parseSingleMessage(html):
+    main_msg = {}
+    soup = BeautifulSoup(html)
+    main_msg_elements = soup('tbody')
+    main_msg['message'] = main_msg_elements[1].text.strip()
 
+    attached_files = []
+    for i in main_msg_elements[0]('a'):
+        if i['href'].startswith('javascript:'):
+            continue
 
+        current_file = {}
+        current_file['name'] = i.text.strip()
+        current_file['link'] = i['href']
+        attached_files.append(current_file)
+
+    main_msg['files'] = attached_files
+
+    positionMap = {
+        "subject" : "Objet :\n",
+        "from" : "De :\n",
+        "to" : "À :\n",
+        "date" : "Date :\n"
+    }
+    for j in main_msg_elements[0]('tr'):
+        for k in positionMap:
+            if j.text.strip().startswith(positionMap[k]):
+                main_msg[k] = j.text.strip().removeprefix(positionMap[k])
+    print(main_msg)
+    return main_msg
 
 
