@@ -202,7 +202,7 @@ def epoch_to_str(epoch):
     return strftime('%Y-%m-%d %H:%M:%S', localtime(epoch))
 
 def prettifyHTML(html, name):
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, 'html.parser')
     f = open(f'outputs/{name}.html', 'w')
     f.write(soup.prettify())
     f.close()
@@ -273,7 +273,6 @@ def formatExams(exams):
 #     return formatted_messages
 
 def parseMessages(html):
-    start_time = time.time()
     positionMap = {
         0: 'sender',
         1: 'title',
@@ -301,14 +300,13 @@ def parseMessages(html):
         formatted_messages.append(message_dict)
 
     print(formatted_messages)
-    print(f'Eexecution took {time.time()-start_time}')
     return formatted_messages
 
 def parseSingleMessage(html):
     main_msg = {}
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, 'html.parser')
     main_msg_elements = soup('tbody')
-    main_msg['message'] = main_msg_elements[1].text.strip()
+    main_msg['message'] = main_msg_elements[1].text.strip().replace(u'\xa0', u' ')
 
     attached_files = []
     for i in main_msg_elements[0]('a'):
@@ -335,4 +333,10 @@ def parseSingleMessage(html):
     print(main_msg)
     return main_msg
 
-
+def time_it(function):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        res = function(*args, **kwargs)
+        print(f"{function.__name__} execution took {round(time.time()-start_time, 4)}s")
+        return res
+    return wrapper

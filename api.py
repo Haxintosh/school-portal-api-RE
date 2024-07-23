@@ -16,6 +16,8 @@ grade_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Travaux.srf'
 messages_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Courriel.srf'
 single_message_url = 'https://portail.cje.qc.ca/pluriportail/pfr/CourrielDetail.srf'
 
+default_root_url ='https://portail.cje.qc.ca/pluriportail/pfr/'
+
 LOG_ROOT = 'outputs/'
 
 # TODO 1. Error handling, 2. Agenda parsing
@@ -75,6 +77,7 @@ other_header= {
         'Pragma': 'no-cache',
         'Cache-Control': 'no-cache'
     }
+
 
 def login(username, password):
     login_payload = {
@@ -182,8 +185,8 @@ def login(username, password):
 # TODO REV ENG AGENDA JS
 def getAgenda(session, start, end):
     bcolors.Logging.info(thread="session/agenda", error="Getting agenda")
-    unixStart = "1714363200000"
-    unixEnd = "1715399999999"
+    unixStart = start # "1714363200000"
+    unixEnd = end # "1715399999999"
     params = {
         "OP": "110",
         "noEcole": "-1",
@@ -222,7 +225,7 @@ def getAgenda(session, start, end):
 
 def getGrades(session, semester):
     bcolors.Logging.info(thread="session/grades", error="Getting grades")
-    start_time = time.time()
+
     if semester not in [1, 2, 3, 'all']:
         bcolors.Logging.error(thread="session/grades", error="Invalid semester!")
         return
@@ -232,12 +235,13 @@ def getGrades(session, semester):
     if grade_data.status_code != 200:
         bcolors.Logging.error(thread="session/grades", error=f"Not 200, status = {grade_data.status_code}")
         return
-    print(f'Fetch took {time.time() - start_time}')
+
     return parseGrades(grade_data.text)
 
+
+@time_it
 def getMessages(session):
-    bcolors.Logging.info(thread="session/messages", error="Getting messages")
-    start_time = time.time()
+    bcolors.Logging.info(thread="session/messages", error="Getting messages overview")
     main_msg_url = messages_url+f'?ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}'
     msg_data = session.get(url=main_msg_url, headers=other_header)
 
@@ -245,12 +249,48 @@ def getMessages(session):
         bcolors.Logging.error(thread="session/messages", error=f"Not 200, status = {msg_data.status_code}")
         return
 
-    print(f'Fetch took {time.time()-start_time}')
     return parseMessages(msg_data.text)
 
+
+@time_it
 def getMessageById(session, id):
+    bcolors.Logging.info(thread="session/messages", error=f"Getting single message with ID {id}")
     single_msg_url = single_message_url+f"?IDCourriel={id}&ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}"
     single_msg_data = session.get(url=single_msg_url, headers=other_header)
-    parseSingleMessage(single_msg_data.text)
-    return single_msg_data.text
+
+    if single_msg_data.status_code != 200:
+        bcolors.Logging.error(thread="session/messages", error=f"Not 200, status = {single_msg_data.status_code}")
+        return
+
+    return parseSingleMessage(single_msg_data.text)
+
+
+@time_it
+def getAllMessageRecursive(session):
+    bcolors.Logging.info(thread="session/messages", error=f"Getting all messages...")
+    messages = getMessages(session)
+    for i in messages:
+        i['data'] = getMessageById(session, i['id'])
+    return messages
+
+
+def downloadFile(session, url):
+    bcolors.Logging.info(thread="session/downloads", error=f"Download file... {url}")
+
+    main_download_url = default_root_url + url
+    download_data = session.get(main_download_url)
+
+    if download_data.status_code != 200:
+        bcolors.Logging.error(thread="session/downloads", error=f"Not 200, status = {download_data.status_code}")
+        return
+
+    filename_raw = download_data.headers['content-disposition'].split("filename=")[1].replace('"', '')
+    if not filename_raw:
+        filename_raw = str(uuid.uuid4())+'.'+download_data.headers['content-type'].split('/')[1]
+
+    f = open(f"{LOG_ROOT}{filename_raw}", 'wb')
+    f.write(download_data.content)
+    f.close()
+
+    return LOG_ROOT+filename_raw
 
