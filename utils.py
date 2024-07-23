@@ -156,6 +156,40 @@ def parseGrades(html):
             if matches:
                 coursesIDs.append(matches[0])
 
+    exams = []
+    examElements = soup.find_all('tbody')
+    for i in examElements:
+        currentExam = []
+        nobr = i('nobr')
+        for j in nobr:
+            if j.text:
+                if j.text.find('|') != -1:
+                    split = cleanString(j.text.strip())
+                    currentExam.append(split[0])
+                    currentExam.append(split[1])
+                else:
+                    currentExam.append(j.text.strip())
+        span = i('span')
+        # get data
+        for k in span:
+            try:
+                if k['pluri-params']:
+                    currentExam.append(json.loads(k['pluri-params']))
+                    # currentExam.append('SKIP')
+            except any as e:
+                pass
+
+        td = i('td')
+        for l in td:
+            if l.text.strip():
+                try:
+                    if l['align']:
+                        currentExam.append(l.text.strip())
+                except (KeyError) as e:
+                    pass
+        exams.append(currentExam)
+    exams = [sub for sub in exams if sub]
+    return formatExams(exams)
 
 def get_day_of_epoch(epoch):
     dateObject = datetime.datetime.fromtimestamp(epoch/1000)
@@ -164,3 +198,42 @@ def get_day_of_epoch(epoch):
 
 def epoch_to_str(epoch):
     return strftime('%Y-%m-%d %H:%M:%S', localtime(epoch))
+
+def prettifyHTML(html):
+    soup = BeautifulSoup(html)
+    print(soup.prettify())
+    f = open('outputs/clean_grade.html', 'w')
+    f.write(soup.prettify())
+    f.close()
+
+def cleanString(string):
+    if string.find('|') != -1:
+        split = string.split('|')
+        returnArray = []
+        for i in split:
+            returnArray.append(i.replace('\r\n', ' ').strip())
+        return returnArray
+    else:
+        return None
+def formatExams(exams):
+    positionMap ={
+        0:'date',
+        1:'type',
+        2:'name',
+        3:'data',
+        4:'competency',
+        5:'weight',
+        6:'maxRes',
+        7:'res',
+        8:'resPercent'
+    }
+
+    returnArray = []
+
+    for i in exams:
+        currentExam = {}
+        for index, e in enumerate(i):
+            currentExam[positionMap[index]] = e
+        returnArray.append(currentExam)
+    print(returnArray)
+    return returnArray
