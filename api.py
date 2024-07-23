@@ -213,20 +213,36 @@ def getAgenda(session, start, end):
 
     agendadata = session.get(url=f"{agenda_url}?{urlencode(params)}", headers=agenda_header)
 
+    if agendadata.status_code != 200:
+        bcolors.Logging.error(thread="session/agenda", error=f"Not 200, status = {agendadata.status_code}")
+        return
+
     return agendadata.text
 
 def getGrades(session, semester):
+    bcolors.Logging.info(thread="session/grades", error="Getting grades")
+    start_time = time.time()
     if semester not in [1, 2, 3, 'all']:
-        print('Invalid semester!')
+        bcolors.Logging.error(thread="session/grades", error="Invalid semester!")
         return
     main_grade_url = grade_url+f'?NoEtape={semester}&ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}'
     grade_data = session.get(url=main_grade_url, headers=other_header)
-    f = open('outputs/disgusting_grade.html', 'w')
-    f.write(grade_data.text)
-    f.close()
+
+    if grade_data.status_code != 200:
+        bcolors.Logging.error(thread="session/grades", error=f"Not 200, status = {grade_data.status_code}")
+        return
+    print(f'Fetch took {time.time() - start_time}')
     return parseGrades(grade_data.text)
 
 def getMessages(session):
+    bcolors.Logging.info(thread="session/messages", error="Getting messages")
+    start_time = time.time()
     main_msg_url = messages_url+f'?ChargeLaPage=F00&_={math.floor(datetime.datetime.timestamp(datetime.datetime.now()))}'
     msg_data = session.get(url=main_msg_url, headers=other_header)
-    return msg_data.text
+
+    if msg_data.status_code != 200:
+        bcolors.Logging.error(thread="session/messages", error=f"Not 200, status = {msg_data.status_code}")
+        return
+
+    print(f'Fetch took {time.time()-start_time}')
+    return parseMessages(msg_data.text)

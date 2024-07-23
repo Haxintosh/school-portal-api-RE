@@ -1,4 +1,6 @@
 import datetime
+import time
+
 import bcolors
 import re
 from time import strftime, localtime
@@ -238,35 +240,69 @@ def formatExams(exams):
     print(returnArray)
     return returnArray
 
-def parseMessages(html):
-    positionMap = {
-        0:'sender',
-        1:'title',
-        2:'time',
-        3:'receiver',
-        4:'link'
-    }
+# def parseMessages(html):
+#     start_time = time.time()
+#     positionMap = {
+#         0:'sender',
+#         1:'title',
+#         2:'time',
+#         3:'receiver',
+#         4:'id'
+#     }
+#     msg_id_regex = re.compile(r"CourrielDetail.srf\?IDCourriel=([^')]*)")
+#
+#     soup = BeautifulSoup(html, 'html.parser')
+#     message_elements = soup.find_all('tr', class_='PointeurMain')
+#     unformatted_messages = []
+#     for i in message_elements:
+#         inner_html = i.text.strip()
+#         href = i('a')
+#         if href:
+#             href = re.findall(msg_id_regex, href[0]['href'])
+#             if href:
+#                 inner_html += f'\n{href[0]}'
+#         unformatted_messages.append(inner_html)
+#     formatted_messages = []
+#     for j in unformatted_messages:
+#         single_message = j.split('\n')
+#         current_message = {}
+#         for index, k in enumerate(single_message):
+#             current_message[positionMap[index]] = k
+#         formatted_messages.append(current_message)
+#     print(formatted_messages)
+#     print(f'Eexecution took {time.time()-start_time}') # what it's 0.03 or 0.07
+#     return formatted_messages
 
+def parseMessages(html):
+    start_time = time.time()
+    positionMap = {
+        0: 'sender',
+        1: 'title',
+        2: 'time',
+        3: 'receiver',
+        4: 'id'
+    }
     msg_id_regex = re.compile(r"CourrielDetail.srf\?IDCourriel=([^')]*)")
 
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, 'html.parser')
     message_elements = soup.find_all('tr', class_='PointeurMain')
-    unformatted_messages = []
-    for i in message_elements:
-        inner_html = i.text.strip()
-        href = i('a')
-        if href:
-            href = re.search(msg_id_regex, href[0]['href'])[0]
-            inner_html += f'\n{href}'
-        unformatted_messages.append(inner_html)
     formatted_messages = []
-    for j in unformatted_messages:
-        single_message = j.split('\n')
-        current_message = {}
-        for index, k in enumerate(single_message):
-            current_message[positionMap[index]] = k
-        formatted_messages.append(current_message)
+    if not message_elements:
+        bcolors.Logging.error(thread="parse/messages", error="No message elements found!")
+        return
+    for element in message_elements:
+        message_data = [text.strip() for text in element.stripped_strings]
+        href = element.find('a', href=True)
+        if href:
+            match = msg_id_regex.search(href['href'])
+            if match:
+                message_data.append(match.group(1))
+
+        message_dict = {positionMap[index]: value for index, value in enumerate(message_data) if index in positionMap}
+        formatted_messages.append(message_dict)
+
     print(formatted_messages)
+    print(f'Eexecution took {time.time()-start_time}')
     return formatted_messages
 
 

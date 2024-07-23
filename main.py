@@ -10,7 +10,8 @@ PASSWORD = os.getenv('PASSWORD')
 
 main_session = login(USERNAME, PASSWORD)
 
-parseMessages(getMessages(main_session))
+getGrades(session=main_session, semester=2)
+# getMessages(main_session)
 
 # parseGrades(getGrades(main_session, 1))
 
