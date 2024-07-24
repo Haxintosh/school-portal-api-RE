@@ -21,9 +21,8 @@ class Course:
         self.location = location
         self.tasks = []
         self.id = id
-    def __str__(self):
-        return f"Subject: {self.subject}\nDay: {self.day}\nStart: {self.start}\nEnd: {self.end}\nTeacher: {self.teacher}\nLocation: {self.location}\nTasks: {self.tasks}\nID: {self.id}"
-
+    def __repr__(self):
+        return str(vars(self))
 
 class Day:
     def __init__(self, date, dayNum, type):
@@ -31,8 +30,8 @@ class Day:
         self.date = date
         self.type = type
         self.courses = []
-    def __str__(self):
-        return f"Day: {self.dayNum}\nDate: {self.date}\nType: {self.type}\nCourses: {self.courses}"
+    def __repr__(self):
+        return str(vars(self))
 
 LOG_ROOT = 'outputs/'
 def csrf_parse(html_doc):
@@ -143,7 +142,7 @@ def parseAgenda(agenda):
 
     for i in formattedDayArray:
         print(i.__str__(), '\n')
-
+    return formattedDayArray
 
 def parseGrades(html):
     soup = BeautifulSoup(html, features="html.parser")

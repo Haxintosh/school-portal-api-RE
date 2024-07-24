@@ -8,9 +8,10 @@ import bcolors
 import requests
 
 login_url = 'https://portail.cje.qc.ca/pluriportail/pfr/LoginReq.srf?Etape=2&Login=1'
+logout_url_step1 = 'https://portail.cje.qc.ca/pluriportail/pfr/MainExterne.srf'
+logout_url_step2 = 'https://portail.cje.qc.ca/pluriportail/pfr/Logout.srf'
 main_srf_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Main.srf?ProfilType=1&Nav=OUI'
 rest_api_key_url = 'https://portail.cje.qc.ca/pluriportail/ServeurJSON.srf?M1-OP14~'
-logout_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Logout.srf'
 agenda_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Agenda.srf'
 grade_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Travaux.srf'
 messages_url = 'https://portail.cje.qc.ca/pluriportail/pfr/Courriel.srf'
@@ -179,6 +180,12 @@ def login(username, password):
 
     return session
 
+def logout(session):
+    session.get(url=logout_url_step1+"?Logout=1", headers=other_header)
+    session.get(url=logout_url_step2+"?ChargeLaPage=F01&_"+str(math.floor(datetime.datetime.timestamp(datetime.datetime.now()))))
+    bcolors.Logging.info(thread="session/logout", error="Logged out")
+
+
 # <----- AGENDA ----->
 # PERMISSIONS = OPCODE 100
 # CONTENTS = OPCODE 110
@@ -221,7 +228,7 @@ def getAgenda(session, start, end):
         bcolors.Logging.error(thread="session/agenda", error=f"Not 200, status = {agendadata.status_code}")
         return
 
-    return agendadata.text
+    return parseAgenda(agendadata.text)
 
 def getGrades(session, semester):
     bcolors.Logging.info(thread="session/grades", error="Getting grades")
